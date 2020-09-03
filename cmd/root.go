@@ -123,14 +123,12 @@ func startBrute(bruteSettings *hashTarget) {
 
 	// create a map of the wordlist for comparing with the password list
 	var parsedHashFormat, _ = strconv.ParseInt(hashFormat, 10, 8)
-	var count int
-	var totalHash map[string]string
-	totalHash, count = hasher.Distinguish(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
-	fmt.Println("number of lines ", count)
+	var totalHash hasher.HashBrute = hasher.Distinguish(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
+	fmt.Println("number of lines ", totalHash.GetCount())
 	// Start iterating over the map while comparing with the password list hash
 	found := make(map[string]string)
 	allFound := false
-	for key, value := range totalHash {
+	for key, value := range totalHash.GetList() {
 		bruteSettings.pFile.Split(bufio.ScanLines)
 		for bruteSettings.pFile.Scan() {
 			var passHash = bruteSettings.pFile.Text()

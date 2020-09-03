@@ -7,34 +7,37 @@ import (
 	"strings"
 )
 
-func hashList(wordList *bufio.Scanner, hashPass func(string) string, count *int) map[string]string {
-	var passStore = make(map[string]string)
+func hashList(wordList *bufio.Scanner, hashSetting HashBrute) {
 	wordList.Split(bufio.ScanLines)
 	for wordList.Scan() {
-		*count += 1
+		hashSetting.IncrementCount()
 		currLine := wordList.Text()
 		currLine = strings.Trim(currLine, "\n ")
-		passStore[currLine] = hashPass(currLine)
+		hashSetting.SetKey(currLine, hashSetting.BeginHash(currLine))
 		if len(currLine) == 0 {
 			break
 		}
 	}
-	return passStore
 }
 
-func Distinguish(wordlist *bufio.Scanner, hashFormat crypto.Hash) (map[string]string, int) {
-	var hashedData = make(map[string]string)
-	var count int
+func create(hashFormat crypto.Hash) {
+
+}
+
+func Distinguish(wordlist *bufio.Scanner, hashFormat crypto.Hash) HashBrute {
+	var performHash HashBrute
 	switch hashFormat {
 	case 1:
 		fmt.Println("Cracking MD4 hash")
-		hashedData = hashList(wordlist, BeginMd4Hash, &count)
+		performHash = &MD4Brute{0, make(map[string]string)}
 	case 2:
 		fmt.Println("Cracking MD5 hash")
-		hashedData = hashList(wordlist, BeginMd5Hash, &count)
+		performHash = &MD5Brute{0, make(map[string]string)}
+		// hashedData = hashList(wordlist, BeginMd5Hash, &count)
 	case 3:
 		fmt.Println("Cracking SHA-1")
-		hashedData = hashList(wordlist, BeginSHA1Hash, &count)
+		// hashedData = hashList(wordlist, BeginSHA1Hash, &count)
 	}
-	return hashedData, count
+	hashList(wordlist, performHash)
+	return performHash
 }
