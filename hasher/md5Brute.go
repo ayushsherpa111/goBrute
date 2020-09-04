@@ -1,22 +1,16 @@
 package hasher
 
 import (
-	"crypto/md5"
-	"encoding/hex"
+	"hash"
 )
 
 type MD5Brute struct {
 	count      int
 	hashedList map[string]string
+	hashType   hash.Hash
 }
 
-func (brt MD5Brute) BeginHash(target string) string {
-	var hasher = md5.New()
-	hasher.Write([]byte(target))
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
-func (brt MD5Brute) Verify(pass string) bool {
+func (brt *MD5Brute) Verify(pass string) bool {
 	return true
 }
 
@@ -34,4 +28,12 @@ func (brt *MD5Brute) GetList() map[string]string {
 
 func (brt *MD5Brute) GetCount() int {
 	return (*brt).count
+}
+
+func (brt *MD5Brute) GetHash() hash.Hash {
+	return (*brt).hashType
+}
+
+func (brt *MD5Brute) Reset() {
+	(*brt).hashType.Reset()
 }

@@ -1,21 +1,13 @@
 package hasher
 
 import (
-	"encoding/hex"
-	"io"
-
-	"golang.org/x/crypto/md4"
+	"hash"
 )
 
 type MD4Brute struct {
 	count      int
 	hashedList map[string]string
-}
-
-func (brt MD4Brute) BeginHash(target string) string {
-	var hasher = md4.New()
-	io.WriteString(hasher, target)
-	return hex.EncodeToString(hasher.Sum(nil))
+	hashType   hash.Hash
 }
 
 func (brt MD4Brute) Verify(pass string) bool {
@@ -36,4 +28,12 @@ func (brt *MD4Brute) GetList() map[string]string {
 
 func (brt *MD4Brute) GetCount() int {
 	return (*brt).count
+}
+
+func (brt *MD4Brute) GetHash() hash.Hash {
+	return (*brt).hashType
+}
+
+func (brt *MD4Brute) Reset() {
+	(*brt).hashType.Reset()
 }
