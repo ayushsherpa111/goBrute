@@ -9,6 +9,8 @@
 *.dll
 *.so
 *.dylib
+goBrute
+
 
 # Test binary, built with `go test -c`
 *.test
@@ -22,6 +24,7 @@
 ### Go Patch ###
 /vendor/
 /Godeps/
+
 
 # End of https://www.toptal.com/developers/gitignore/api/go
 
