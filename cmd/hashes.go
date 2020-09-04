@@ -37,14 +37,14 @@ var hashesCmd = &cobra.Command{
 }
 
 func getHashTable() string {
-	var tableStart = fmt.Sprintf("\n%3v%-3v|%3v%-12v|\n", "", "#", "", "Hash")
+	var tableStart = fmt.Sprintf("\n%3v%-3v|%2v%-12v|\n", "", "#", "", "Hash")
 	tableStart += strings.Repeat("=", 6)
 	tableStart += "+"
-	tableStart += strings.Repeat("=", 15)
+	tableStart += strings.Repeat("=", 14)
 	tableStart += "+"
 	for start := 1; start < 20; start++ {
 		hashString := crypto.Hash(start)
-		tableStart += fmt.Sprintf("\n%3v%-3v|%3v%-12v|", "", start, "", hashString)
+		tableStart += fmt.Sprintf("\n%3v%-3v|%2v%-12v|", "", start, "", hashString)
 	}
 
 	return tableStart

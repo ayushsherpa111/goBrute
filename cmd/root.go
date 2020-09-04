@@ -7,10 +7,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ayushsherpa111/goBrute/hasher"
+	"github.com/cheggaaa/pb/v3"
 	"github.com/spf13/cobra"
-	// "github.com/cheggaaa/pb/v3"
 )
 
 type hashTarget struct {
@@ -115,22 +116,65 @@ func isStrEmpty(str string) bool {
 	return true
 }
 
-func printResults(results map[string]string) {
+func printResults(found map[string]string) {
+	fmt.Println("\nFound hashes:")
+	var tableLen int
+	var indexLen int
+	for i, v := range found {
+		tableLen = len(v)
+		indexLen = len(i)
+		break
+	}
+
+	if indexLen < 10 {
+		indexLen = 11
+	}
+	fmt.Printf("%-4v* Format: %v\n", "", hashFormat)
+	fmt.Printf("%*v%-*v|%*v%-*v|\n", (indexLen/2)-2, "", indexLen+1, "Plain Text", (tableLen/2)-3, "", (tableLen/2)+5, "Hash")
+	fmt.Printf("%v+%v+\n", strings.Repeat("=", indexLen+4), strings.Repeat("=", tableLen+2))
+
+	for hashKey, plainText := range found {
+		fmt.Printf("%*v%-*v|%1v%-*v|\n", (indexLen/2)-2, "", indexLen+1, hashKey, "", tableLen+1, plainText)
+	}
 
 }
 
 func startBrute(bruteSettings *hashTarget) {
-
 	// create a map of the wordlist for comparing with the password list
 	var parsedHashFormat, _ = strconv.ParseInt(hashFormat, 10, 8)
 	var totalHash hasher.HashBrute = hasher.Distinguish(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
-	fmt.Println("number of lines ", totalHash.GetCount())
 	// Start iterating over the map while comparing with the password list hash
 	found := make(map[string]string)
 	allFound := false
+
+	// keep track of wheather all the passwords have been cracked
+	firstPass := true
+	var totalPassList int
+
+	// progress bar
+	bar := pb.StartNew(totalHash.GetCount())
+	bar.SetRefreshRate(time.Millisecond)
+	bar.Set(pb.Bytes, true)
 	for key, value := range totalHash.GetList() {
 		bruteSettings.pFile.Split(bufio.ScanLines)
+		if allFound {
+			break
+		}
+		bar.Increment()
 		for bruteSettings.pFile.Scan() {
+
+			if firstPass {
+				totalPassList += 1
+			}
+
+			if !firstPass && len(found) == totalPassList {
+				allFound = true
+			}
+
+			if found[key] != "" {
+				continue
+			}
+
 			var passHash = bruteSettings.pFile.Text()
 			var err = bruteSettings.pFile.Err()
 			if err != nil {
@@ -140,7 +184,7 @@ func startBrute(bruteSettings *hashTarget) {
 			}
 
 			if passHash == value {
-				fmt.Printf("Found hash %v %v\n", key, value)
+				// fmt.Printf("Found hash %v %v\n", key, value)
 				found[key] = value
 				break
 			}
@@ -152,15 +196,9 @@ func startBrute(bruteSettings *hashTarget) {
 		}
 	}
 	if len(found) > 0 {
-		fmt.Println("\nFound hashes:")
-		fmt.Printf("%-4v* Format: %v\n", "", hashFormat)
-		fmt.Printf("%5v%-15v|%15v%-19v|\n", "", "Plain Text", "", "Hash")
-		fmt.Printf("%v+%v+\n", strings.Repeat("=", 20), strings.Repeat("=", 34))
-
-		for hashKey, plainText := range found {
-			fmt.Printf("%5v%-15v|%1v%-33v|\n", "", hashKey, "", plainText)
-		}
+		printResults(found)
 	} else {
 		fmt.Println("¯\\_(ツ)_/¯ no hashes found")
 	}
+	bar.Finish()
 }
