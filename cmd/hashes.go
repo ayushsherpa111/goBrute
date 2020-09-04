@@ -42,11 +42,12 @@ func getHashTable() string {
 	tableStart += "+"
 	tableStart += strings.Repeat("=", 14)
 	tableStart += "+"
-	for start := 1; start < 20; start++ {
+	for start := 1; start < 16; start++ {
 		hashString := crypto.Hash(start)
 		tableStart += fmt.Sprintf("\n%3v%-3v|%2v%-12v|", "", start, "", hashString)
 	}
 
+	tableStart += fmt.Sprintf("\n%3v%-3v|%2v%-12v|", "", 16, "", "SHA-512")
 	return tableStart
 }
 
