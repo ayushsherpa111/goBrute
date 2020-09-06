@@ -70,6 +70,7 @@ var (
 					}
 				} else if !isStrEmpty(passwordHash) {
 					// password hash is defined
+					hashBrute(&brute, passwordHash)
 				} else {
 					return fmt.Errorf("Missing arguments passwordFile (-P) or passwordHash (-p)")
 				}
@@ -137,6 +138,20 @@ func printResults(found map[string]string) {
 		fmt.Printf("%*v%-*v|%1v%-*v|\n", (indexLen/2)-2, "", indexLen+1, hashKey, "", tableLen+1, plainText)
 	}
 
+}
+
+func hashBrute(bruteSettings *hashTarget, hashStr string) {
+	var parsedHashFormat, _ = strconv.ParseInt(hashFormat, 10, 8)
+	var totalHash hasher.HashBrute = hasher.Distinguish(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
+	bar := pb.StartNew(totalHash.GetCount())
+	for key, hash := range totalHash.GetList() {
+		bar.Increment()
+		if hash == hashStr {
+			fmt.Println("Found", key)
+			break
+		}
+	}
+	bar.Finish()
 }
 
 func startBrute(bruteSettings *hashTarget) {
