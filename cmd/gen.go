@@ -83,20 +83,30 @@ func getCharLen(flag string) (int, string) {
 }
 
 func startGen(chars int, start string, pattern []string, nextPr string) {
+	// A recursive function that generates every possible password combination
+	// the user supplies a `pattern`
+	// the function goes through each pattern format
+
+	// once the total required characters have been met return
 	if chars == 0 {
+
 		// start hashing and comparing
 		fmt.Printf("%s ", start)
 		return
 	}
+
+	// get the character set of the current pattern
 	size, data := getCharLen(nextPr)
+
+	// loop over each character in the character set
 	for counter := 0; counter < size; counter++ {
 		newPrefix := start + string(data[counter])
 		var nextPtrn string
+		// find the next pattern in the list. if its the last pattern ignore the data
 		if len(start) < len(pattern)-1 {
 			nextPtrn = pattern[len(start)+1]
-		} else {
-			nextPtrn = ""
 		}
+		// start iterating over the next pattern and reduce the required number of characters by 1
 		startGen(chars-1, newPrefix, pattern, nextPtrn)
 	}
 
