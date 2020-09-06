@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 NAME HERE ayush20100@hotmail.com
+Copyright © 2020 ayush sherpa
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
