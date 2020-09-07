@@ -16,9 +16,11 @@ limitations under the License.
 package cmd
 
 import (
+	"crypto/md5"
 	"fmt"
 	"strings"
 
+	"github.com/ayushsherpa111/goBrute/hasher"
 	"github.com/spf13/cobra"
 )
 
@@ -39,6 +41,8 @@ goBrute will then try and generate the sequence hash it and compare it to the su
 		- generates a 7 character long password with 1 leading uppercase letter, 5 lowercase letters and 1 number 
 	`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			// The pattern for the password is missing
 			if len(pattern) == 0 {
 				patternErr := paramError("pattern", "p", "Missing password pattern")
 				patternErr += `
@@ -50,17 +54,26 @@ goBrute will then try and generate the sequence hash it and compare it to the su
 				`
 				return fmt.Errorf(patternErr)
 			}
+
+			// check if the user has supplied a target hash to brute force
+			if len(hshTarget) == 0 {
+				return fmt.Errorf(paramError("hash", "j", "Target Hash is missing"))
+			}
+
+			// split the pattern into individual components for easier processing
 			splts := strings.Split(pattern, "?")[1:]
 			if !validatePattern(splts) {
 				return fmt.Errorf("* Unknown pattern supplied")
 			}
-			fmt.Println(len(splts), splts, splts[0])
-			startGen(len(splts), "", splts, splts[0])
+			startGen(len(splts), "", splts, splts[0], false)
 			return nil
 		},
 	}
-	pattern          string
-	targetFormat     string
+
+	hshTarget    string
+	pattern      string
+	targetFormat string
+	// printable characters for the passsword
 	printableNumbers string = "0123456789"
 	printableLower   string = "abcdefghijklmnopqrstuvwxyz"
 	printableUpper   string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -82,16 +95,20 @@ func getCharLen(flag string) (int, string) {
 	}
 }
 
-func startGen(chars int, start string, pattern []string, nextPr string) {
+func startGen(chars int, start string, pattern []string, nextPr string, found bool) {
 	// A recursive function that generates every possible password combination
 	// the user supplies a `pattern`
 	// the function goes through each pattern format
 
 	// once the total required characters have been met return
-	if chars == 0 {
+	if chars == 0 || found {
 
 		// start hashing and comparing
-		fmt.Printf("%s ", start)
+		fndHash := hasher.Brute(start, md5.New())
+		if fndHash == hshTarget {
+			fmt.Println("Found password", start, fndHash)
+			found = true
+		}
 		return
 	}
 
@@ -107,7 +124,7 @@ func startGen(chars int, start string, pattern []string, nextPr string) {
 			nextPtrn = pattern[len(start)+1]
 		}
 		// start iterating over the next pattern and reduce the required number of characters by 1
-		startGen(chars-1, newPrefix, pattern, nextPtrn)
+		startGen(chars-1, newPrefix, pattern, nextPtrn, found)
 	}
 
 }
@@ -115,6 +132,7 @@ func startGen(chars int, start string, pattern []string, nextPr string) {
 func init() {
 	rootCmd.AddCommand(genCmd)
 
+	genCmd.Flags().StringVarP(&hshTarget, "hash", "j", pattern, "The Target hash to brute force")
 	genCmd.Flags().StringVarP(&pattern, "pattern", "p", pattern, "Supply a pattern of the target password.")
 	genCmd.Flags().StringVarP(&targetFormat, "target", "t", targetFormat, "Target Hash Algorithim to use.")
 }
