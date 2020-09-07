@@ -142,9 +142,9 @@ func printResults(found map[string]string) {
 
 func hashBrute(bruteSettings *hashTarget, hashStr string) {
 	var parsedHashFormat, _ = strconv.ParseInt(hashFormat, 10, 8)
-	var totalHash hasher.HashBrute = hasher.Distinguish(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
-	bar := pb.StartNew(totalHash.GetCount())
-	for key, hash := range totalHash.GetList() {
+	var totalHash, count = hasher.StartCracking(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
+	bar := pb.StartNew(count)
+	for key, hash := range *totalHash {
 		bar.Increment()
 		if hash == hashStr {
 			fmt.Println("Found", key)
@@ -157,7 +157,7 @@ func hashBrute(bruteSettings *hashTarget, hashStr string) {
 func startBrute(bruteSettings *hashTarget) {
 	// create a map of the wordlist for comparing with the password list
 	var parsedHashFormat, _ = strconv.ParseInt(hashFormat, 10, 8)
-	var totalHash hasher.HashBrute = hasher.Distinguish(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
+	var totalHash, count = hasher.StartCracking(bruteSettings.wFile, crypto.Hash(parsedHashFormat))
 	// Start iterating over the map while comparing with the password list hash
 	found := make(map[string]string)
 	allFound := false
@@ -167,10 +167,10 @@ func startBrute(bruteSettings *hashTarget) {
 	var totalPassList int
 
 	// progress bar
-	bar := pb.StartNew(totalHash.GetCount())
+	bar := pb.StartNew(count)
 	bar.SetRefreshRate(time.Millisecond)
 	bar.Set(pb.Bytes, true)
-	for key, value := range totalHash.GetList() {
+	for key, value := range *totalHash {
 		bruteSettings.pFile.Split(bufio.ScanLines)
 		if allFound {
 			break

@@ -16,8 +16,9 @@ limitations under the License.
 package cmd
 
 import (
-	"crypto/md5"
+	"crypto"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/ayushsherpa111/goBrute/hasher"
@@ -104,7 +105,11 @@ func startGen(chars int, start string, pattern []string, nextPr string, found bo
 	if chars == 0 || found {
 
 		// start hashing and comparing
-		fndHash := hasher.Brute(start, md5.New())
+		hsh, _ := strconv.ParseInt(hshTarget, 10, 8)
+		hashType := hasher.Distinguish(crypto.Hash(hsh))
+		fndHash := hasher.Brute(start, hashType.GetHash())
+		hashType.Reset()
+
 		if fndHash == hshTarget {
 			fmt.Println("Found password", start, fndHash)
 			found = true
